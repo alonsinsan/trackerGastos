@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS pagos;
 CREATE TABLE metodos (
 	id serial,
 	nombre varchar(50) NOT NULL,
-	limite float NOT NULL,
+	limite float,
 	diaCorte int,
 	periodoPago int,
 	CONSTRAINT metodos_pkey PRIMARY KEY (id),
@@ -59,21 +59,25 @@ CREATE TABLE categorias(
     id serial4,
     categoria varchar(100) NOT NULL,
     tipo varchar(50) NOT NULL,
-    montoPlaneadoMensual float NOT NULL
     CONSTRAINT categorias_pkey PRIMARY KEY (id),
     CONSTRAINT unicos_categorias UNIQUE (categoria,tipo)
 );
 CREATE INDEX ind_tipo_categorias ON categorias USING btree (tipo);
 
-CREATE TABLE subcategorias(
+CREATE TABLE planeacion(
     id serial,
-    subcategoria varchar(100) NOT NULL,
-    idCategoria int NOT NULL,
-    CONSTRAINT subcategorias_pkey PRIMAY KEY (id),
-    CONSTRAINT unicos_subcategorias UNIQUE (subcategoria, id_Categoria),
-    CONSTRAINT categorias_subcategorias FOREIGN KEY (idSubcategoria) REFERENCES categorias(id)
+    año int,
+    mes varchar(16),
+    subcategoria varchar(100),
+    idCategoria int,
+    montoPlaneadoMensual float,
+    CONSTRAINT planeacion_pkey PRIMAY KEY (id),
+    CONSTRAINT unicos_planeacion UNIQUE (año, mes, subcategoria, id_Categoria),
+    CONSTRAINT categorias_planeacion FOREIGN KEY (idCategoria) REFERENCES categorias(id)
 );
-CREATE INDEX ind_subcategoria_subcategorias ON subcategorias USING btree (subcategoria);
+CREATE INDEX ind_subcategoria_planeacion ON planeacion USING btree (subcategoria);
+CREATE INDEX ind_subcategoria_año ON planeacion USING btree (año);
+CREATE INDEX ind_subcategoria_mes ON planeacion USING btree (mes);
 
 CREATE TABLE gastos (
 	id serial,
@@ -136,8 +140,24 @@ CREATE TABLE cuentaCorriente(
     concepto varchar(50) NOT NULL,
     abono bool NOT NULL default false,
     monto float NOT NULL,
-    saldo float NOT NULL
+    saldo float NOT NULL,
+    hecho bool not null default false,
     CONSTRAINT cuentaCorriente_pkey PRIMARY KEY (id),
     CONSTRAINT unicos_cuentaCorriente UNIQUE (fecha,concepto,abono)
 );
 CREATE INDEX ind_fecha_cuentaCorriente ON cuentaCOrriente USING btree (fecha);
+
+CREATE TABLE comprasMeses(
+    id serial,
+    concepto varchar(50) not null,
+    monto float not null,
+    meses int not null,
+    fechaPrimerCorte date not null,
+    montoMensual float not null,
+    idMetodo int,
+    idCuadre int,
+    CONSTRAINT comprasMeses_pley PRIMARY KEY (id),
+    CONSTRAINT unicos_comprasMeses UNIQUE (concepto, monto, meses, fechaPrimerCorte,idMetodo,idCuadre)
+    CONSTRAINT metodos_comprasMeses FOREIGN KEY (idMetodo) REFERENCES metodos(id),
+    CONSTRAINT cuadres_comprasMeses FOREIGN KEY (idCuadre) REFERENCES cuadres(id)
+);
